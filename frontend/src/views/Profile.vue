@@ -211,6 +211,11 @@ const profileLinks = [
 			"iban",
 		],
 	},
+	{
+		icon: "key",
+		title: __("Reset Password"),
+		redirect: "/update-password",
+	},
 ]
 
 const isInfoModalOpen = ref(false)
@@ -223,6 +228,10 @@ const allowPushNotifications = computed(
 )
 
 const openInfoModal = async (request) => {
+	if (request.redirect) {
+		window.location.href = request.redirect
+		return
+	}
 	selectedItem.value = request
 	isInfoModalOpen.value = true
 }

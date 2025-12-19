@@ -25,6 +25,15 @@
 							v-model="password"
 							autocomplete="current-password"
 						/>
+						<div class="flex justify-end mt-1">
+							<a
+								href="/#forgot"
+								target="_blank"
+								class="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+							>
+								{{ __("Forgot Password?") }}
+							</a>
+						</div>
 						<ErrorMessage :message="errorMessage" />
 						<Button
 							:loading="session.login.loading"
