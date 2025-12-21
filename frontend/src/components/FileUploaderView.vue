@@ -1,7 +1,10 @@
 <template>
 	<div class="flex flex-col gap-3 py-4">
 		<label class="file-select">
-			<h2 class="text-base font-semibold text-gray-800 pb-4">{{ __("Attachments") }} </h2>
+			<h2 class="text-base font-semibold text-gray-800 pb-4">
+				{{ __("Attachments") }}
+				<span v-if="required" class="text-red-500">*</span>
+			</h2>
 			<div class="select-button cursor-pointer">
 				<div
 					class="flex flex-col w-full border shadow-sm items-center rounded p-3 gap-2"
@@ -99,6 +102,10 @@ const props = defineProps({
 	modelValue: {
 		type: Object,
 		required: true,
+	},
+	required: {
+		type: Boolean,
+		default: false,
 	},
 })
 let showDialog = ref(false)

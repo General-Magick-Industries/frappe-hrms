@@ -9,6 +9,7 @@
 				:fields="formFields.data"
 				:id="props.id"
 				:showAttachmentView="true"
+				:attachmentRequired="isAttachmentRequired"
 				@validateForm="validateForm"
 			/>
 		</ion-content>
@@ -18,7 +19,7 @@
 <script setup>
 import { IonPage, IonContent } from "@ionic/vue"
 import { createResource } from "frappe-ui"
-import { ref, watch, inject } from "vue"
+import { ref, watch, inject, computed } from "vue"
 
 import FormView from "@/components/FormView.vue"
 
@@ -38,6 +39,10 @@ const currEmployee = ref(sessionEmployee.data.name)
 
 // reactive object to store form data
 const leaveApplication = ref({})
+
+const isAttachmentRequired = computed(() => {
+	return leaveApplication.value.leave_type?.includes("Sick Leave")
+})
 
 // get form fields
 const formFields = createResource({

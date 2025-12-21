@@ -127,6 +127,7 @@
 							<FileUploaderView
 								v-else-if="showAttachmentView && index === 0"
 								v-model="fileAttachments"
+								:required="attachmentRequired"
 								@handleFileSelect="handleFileSelect"
 								@handleFileDelete="handleFileDelete"
 							/>
@@ -166,6 +167,7 @@
 					<FileUploaderView
 						v-else-if="showAttachmentView"
 						v-model="fileAttachments"
+						:required="attachmentRequired"
 						@handleFileSelect="handleFileSelect"
 						@handleFileDelete="handleFileDelete"
 					/>
@@ -381,6 +383,11 @@ const props = defineProps({
 		default: true,
 	},
 	showDownloadPDFButton: {
+		type: Boolean,
+		required: false,
+		default: false,
+	},
+	attachmentRequired: {
 		type: Boolean,
 		required: false,
 		default: false,
@@ -656,6 +663,9 @@ function validateMandatoryFields() {
 		formErrorMessage.value = `${errorFields.join(", ")} ${
 			errorFields.length > 1 ? "fields are mandatory" : "field is mandatory"
 		}`
+		return false
+	} else if (props.attachmentRequired && !fileAttachments.value.length) {
+		formErrorMessage.value = __("Attachment is mandatory")
 		return false
 	} else {
 		formErrorMessage.value = ""

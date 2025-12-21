@@ -195,21 +195,26 @@ const profileLinks = [
 			"preferred_email",
 		],
 	},
+	// {
+	// 	icon: "dollar-sign",
+	// 	title: __("Salary Information"),
+	// 	fields: [
+	// 		"ctc",
+	// 		"payroll_cost_center",
+	// 		"pan_number",
+	// 		"provident_fund_account",
+	// 		"salary_mode",
+	// 		"bank_name",
+	// 		"bank_ac_no",
+	// 		"ifsc_code",
+	// 		"micr_code",
+	// 		"iban",
+	// 	],
+	// },
 	{
-		icon: "dollar-sign",
-		title: __("Salary Information"),
-		fields: [
-			"ctc",
-			"payroll_cost_center",
-			"pan_number",
-			"provident_fund_account",
-			"salary_mode",
-			"bank_name",
-			"bank_ac_no",
-			"ifsc_code",
-			"micr_code",
-			"iban",
-		],
+		icon: "key",
+		title: __("Reset Password"),
+		redirect: "/update-password",
 	},
 ]
 
@@ -223,6 +228,10 @@ const allowPushNotifications = computed(
 )
 
 const openInfoModal = async (request) => {
+	if (request.redirect) {
+		window.location.href = request.redirect
+		return
+	}
 	selectedItem.value = request
 	isInfoModalOpen.value = true
 }
