@@ -17,7 +17,7 @@
 		</div>
 
 		<!-- Leave Balance Dashboard -->
-		<div
+		<!-- <div
 			class="flex flex-row gap-4 overflow-x-auto py-2 mt-3"
 			v-if="leaveBalance.data"
 		>
@@ -39,7 +39,7 @@
 			</div>
 		</div>
 
-		<EmptyState :message="__('You have no leaves allocated')" v-else />
+		<EmptyState :message="__('You have no leaves allocated')" v-else /> -->
 	</div>
 </template>
 

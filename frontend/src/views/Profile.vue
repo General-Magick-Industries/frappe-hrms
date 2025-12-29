@@ -212,6 +212,11 @@ const profileLinks = [
 	// 	],
 	// },
 	{
+		icon: "user",
+		title: __("Update Profile"),
+		redirect: "/update-employee-detail",
+	},
+	{
 		icon: "key",
 		title: __("Reset Password"),
 		redirect: "/update-password",
@@ -229,7 +234,14 @@ const allowPushNotifications = computed(
 
 const openInfoModal = async (request) => {
 	if (request.redirect) {
-		window.location.href = request.redirect
+		let redirectUrl = request.redirect
+		
+		// Jika redirect ke update-employee-detail, tambahkan employee name
+		if (request.redirect.includes('update-employee-detail')) {
+			redirectUrl = `${request.redirect}/${employee.data?.name}`
+		}
+		
+		window.location.href = redirectUrl
 		return
 	}
 	selectedItem.value = request
