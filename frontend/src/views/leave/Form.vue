@@ -41,7 +41,8 @@ const currEmployee = ref(sessionEmployee.data.name)
 const leaveApplication = ref({})
 
 const isAttachmentRequired = computed(() => {
-	return leaveApplication.value.leave_type?.includes("Sick Leave")
+	const leaveType = leaveApplication.value.leave_type
+	return leaveType?.includes("Sick Leave") || leaveType?.includes("Visa Leave")
 })
 
 // get form fields
