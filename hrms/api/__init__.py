@@ -53,6 +53,7 @@ def get_current_employee_info() -> dict:
 			"company",
 			"reports_to",
 			"user_id",
+			"custom_nickname",
 		],
 		as_dict=True,
 	)

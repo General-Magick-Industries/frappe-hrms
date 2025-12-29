@@ -1,7 +1,7 @@
 <template>
 	<div class="flex flex-col bg-white rounded w-full py-6 px-4 border-none">
 		<h2 class="text-lg font-bold text-gray-900">
-			{{ __("Hey, {0} 👋", [employee?.data?.first_name]) }}
+			{{ __("Hey, {0} 👋", [employee?.data?.custom_nickname]) }}
 		</h2>
 
 		<template v-if="settings.data?.allow_employee_checkin_from_mobile_app">
