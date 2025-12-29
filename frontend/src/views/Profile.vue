@@ -214,7 +214,7 @@ const profileLinks = [
 	{
 		icon: "user",
 		title: __("Update Profile"),
-		redirect: "/update-employee-detail",
+		redirect: "/app/employee",
 	},
 	{
 		icon: "key",
@@ -237,7 +237,7 @@ const openInfoModal = async (request) => {
 		let redirectUrl = request.redirect
 		
 		// Jika redirect ke update-employee-detail, tambahkan employee name
-		if (request.redirect.includes('update-employee-detail')) {
+		if (request.redirect.includes('/app/employee')) {
 			redirectUrl = `${request.redirect}/${employee.data?.name}`
 		}
 		
