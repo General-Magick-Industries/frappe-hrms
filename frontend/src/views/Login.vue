@@ -30,7 +30,7 @@
 							/>
 							<button
 								type="button"
-								class="absolute right-3 top-8 text-gray-500 hover:text-gray-700 focus:outline-none"
+								class="absolute right-3 flex items-center justify-center top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
 								@click="showPassword = !showPassword"
 							>
 								<FeatherIcon :name="showPassword ? 'eye-off' : 'eye'" class="h-5 w-5" />
