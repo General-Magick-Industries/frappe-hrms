@@ -74,6 +74,7 @@ def get_all_employees() -> list[dict]:
 			"user_id",
 			"image",
 			"status",
+			"custom_nickname",
 		],
 		limit=999999,
 	)
