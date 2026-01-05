@@ -38,6 +38,9 @@
 								employee?.data?.employee_name
 							}}</span>
 							<span v-if="employee" class="font-normal text-sm text-gray-500">{{
+								employee?.data?.custom_nickname
+							}}</span>
+							<span v-if="employee" class="font-normal text-sm text-gray-500">{{
 								employee?.data?.designation
 							}}</span>
 						</div>
@@ -165,6 +168,7 @@ const profileLinks = [
 		title: __("Employee Details"),
 		fields: [
 			"employee_name",
+			"custom_nickname",
 			"employee_number",
 			"gender",
 			"date_of_birth",

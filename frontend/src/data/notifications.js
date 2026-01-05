@@ -33,3 +33,14 @@ export const arePushNotificationsEnabled = createResource({
 	cache: "hrms:push_notifications_enabled",
 	auto: true,
 })
+
+export const employeesByUser = createResource({
+	url: "frappe.client.get_list",
+	params: {
+		doctype: "Employee",
+		fields: ["user_id", "custom_nickname", "employee_name"],
+		filters: [["user_id", "is", "set"]]
+	},
+	cache: "hrms:employees_nicknames",
+	auto: true,
+})

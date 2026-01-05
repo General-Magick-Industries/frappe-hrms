@@ -53,7 +53,7 @@ def get_current_employee_info() -> dict:
 			"company",
 			"reports_to",
 			"user_id",
-			"custom_nickname",
+			"custom_nickname", # TODO: added for custom nickname
 		],
 		as_dict=True,
 	)
@@ -74,7 +74,7 @@ def get_all_employees() -> list[dict]:
 			"user_id",
 			"image",
 			"status",
-			"custom_nickname",
+			"custom_nickname", # TODO: added for custom nickname
 		],
 		limit=999999,
 	)
@@ -245,6 +245,11 @@ def get_filters(
 	if for_approval:
 		filters.docstatus = 0
 		filters.employee = ("!=", employee)
+
+		# Filter by same company
+		employee_company = frappe.db.get_value("Employee", employee, "company")
+		if employee_company and doctype in ["Leave Application", "Expense Claim", "Shift Request"]:
+			filters.company = employee_company
 
 		if workflow := get_workflow(doctype):
 			allowed_states = get_allowed_states_for_workflow(workflow, approver_id)
@@ -505,7 +510,7 @@ def get_expense_claims(
 		"`tabExpense Claim`.company",
 		"`tabExpense Claim`.creation",
 		"`tabExpense Claim Detail`.expense_type",
-		"count(`tabExpense Claim Detail`.expense_type) as total_expenses",
+		{"COUNT": "`tabExpense Claim Detail`.expense_type", "as": "total_expenses"},
 	]
 
 	if workflow_state_field := get_workflow_state_field("Expense Claim"):
