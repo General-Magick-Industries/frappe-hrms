@@ -302,8 +302,19 @@ def get_shift_request_approvers(employee: str) -> str | list[str]:
 
 @frappe.whitelist()
 def get_shifts(employee: str) -> list[dict[str, str]]:
+	# Ambil company dari employee
+	employee_company = frappe.db.get_value("Employee", employee, "company")
+	
 	ShiftAssignment = frappe.qb.DocType("Shift Assignment")
 	ShiftType = frappe.qb.DocType("Shift Type")
+	
+	# Buat kondisi untuk company: sama dengan employee company ATAU kosong/null
+	company_condition = (
+		(ShiftType.custom_company == employee_company) 
+		| (ShiftType.custom_company.isnull()) 
+		| (ShiftType.custom_company == "")
+	)
+	
 	return (
 		frappe.qb.from_(ShiftAssignment)
 		.join(ShiftType)
@@ -315,11 +326,13 @@ def get_shifts(employee: str) -> list[dict[str, str]]:
 			ShiftAssignment.end_date,
 			ShiftType.start_time,
 			ShiftType.end_time,
+			ShiftType.custom_company,  # Optional: jika ingin return company juga
 		)
 		.where(
 			(ShiftAssignment.employee == employee)
 			& (ShiftAssignment.status == "Active")
 			& (ShiftAssignment.docstatus == 1)
+			& company_condition
 		)
 		.orderby(ShiftAssignment.start_date, order=Order.asc)
 	).run(as_dict=True)
