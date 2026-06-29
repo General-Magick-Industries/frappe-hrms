@@ -313,7 +313,8 @@ def get_shift_request_approvers(employee: str) -> str | list[str]:
 
 
 @frappe.whitelist()
-def get_shifts(employee: str) -> list[dict[str, str]]:
+def get_shifts() -> list[dict[str, str]]:
+	employee = get_current_employee()
 	# Ambil company dari employee
 	employee_company = frappe.db.get_value("Employee", employee, "company")
 	
