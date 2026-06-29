@@ -393,7 +393,7 @@ const props = defineProps({
 		default: false,
 	},
 })
-const emit = defineEmits(["validateForm", "update:modelValue"])
+const emit = defineEmits(["validateForm", "update:modelValue", "formReloaded"])
 const router = useRouter()
 const { downloadPDF } = useDownloadPDF()
 
@@ -560,7 +560,6 @@ const docList = createListResource({
 const documentResource = createDocumentResource({
 	doctype: props.doctype,
 	name: props.id,
-	fields: "*",
 	setValue: {
 		onSuccess() {
 			toast({
@@ -684,7 +683,7 @@ async function handleDocUpdate(action) {
 		} else if (action == "cancel") {
 			params.docstatus = 2
 		}
-		
+
 		await documentResource.setValue.submit(params)
 		await documentResource.get.promise
 		resetForm()
@@ -730,6 +729,7 @@ function resetForm() {
 	nextTick(() => {
 		isFormDirty.value = false
 		isFormUpdated.value = true
+		emit("formReloaded")
 	})
 }
 function handleDownload() {

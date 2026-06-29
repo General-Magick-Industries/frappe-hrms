@@ -64,6 +64,13 @@ class IncomeTaxComputationReport:
 
 		for d in employees:
 			if d.employee in list(ss_assignments.keys()):
+				# skip employees whose employment does not overlap the payroll period,
+				# i.e. those who joined after the period ended or were relieved before it started
+				if getdate(d.date_of_joining) > getdate(self.payroll_period_end_date):
+					continue
+				if d.relieving_date and getdate(d.relieving_date) < getdate(self.payroll_period_start_date):
+					continue
+
 				d.update(ss_assignments[d.employee])
 				self.employees.setdefault(d.employee, d)
 
@@ -421,7 +428,7 @@ class IncomeTaxComputationReport:
 						"company": self.filters.company,
 						"docstatus": 1,
 					},
-					fields="SUM(amount) as total_amount",
+					fields=[{"SUM": "amount", "as": "total_amount"}],
 				)[0].total_amount
 				or 0.0
 			)

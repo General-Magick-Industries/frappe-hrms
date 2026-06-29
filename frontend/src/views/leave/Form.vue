@@ -19,7 +19,7 @@
 <script setup>
 import { IonPage, IonContent } from "@ionic/vue"
 import { createResource } from "frappe-ui"
-import { ref, watch, inject, computed } from "vue"
+import { ref, watch, inject, computed, nextTick } from "vue"
 
 import FormView from "@/components/FormView.vue"
 
@@ -44,6 +44,22 @@ const isAttachmentRequired = computed(() => {
 	const leaveType = leaveApplication.value.leave_type
 	return leaveType?.includes("Sick Leave") || leaveType?.includes("Visa Leave")
 })
+// For existing docs, watchers fire during initial data population from the DB.
+// This flag prevents setLeaveBalance() from overwriting the stored
+// "leave balance before application" value during that initial load.
+const isFormInitialized = ref(!props.id)
+if (props.id) {
+	watch(
+		() => leaveApplication.value.name,
+		(name) => {
+			if (name && !isFormInitialized.value) {
+				nextTick(() => {
+					isFormInitialized.value = true
+				})
+			}
+		}
+	)
+}
 
 // get form fields
 const formFields = createResource({
@@ -213,6 +229,7 @@ function setTotalLeaveDays() {
 
 function setLeaveBalance() {
 	if (!areValuesSet()) return
+	if (!isFormInitialized.value) return
 
 	const leaveBalance = createResource({
 		url: "hrms.hr.doctype.leave_application.leave_application.get_leave_balance_on",

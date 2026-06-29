@@ -7,6 +7,7 @@ from datetime import date
 
 import frappe
 from frappe import _, msgprint
+from frappe.model.document import Document
 from frappe.model.naming import make_autoname
 from frappe.query_builder import Order
 from frappe.query_builder.functions import Count, Sum
@@ -351,7 +352,7 @@ class SalarySlip(TransactionBase):
 			self.end_date = date_details.end_date
 
 	@frappe.whitelist()
-	def get_emp_and_working_day_details(self):
+	def get_emp_and_working_day_details(self) -> None:
 		"""First time, load all the components from salary structure"""
 		if self.employee:
 			self.set("earnings", [])
@@ -389,7 +390,11 @@ class SalarySlip(TransactionBase):
 				.where(
 					(Timesheet.employee == self.employee)
 					& (Timesheet.start_date.between(self.start_date, self.end_date))
-					& ((Timesheet.status == "Submitted") | (Timesheet.status == "Billed"))
+					& (
+						(Timesheet.status == "Submitted")
+						| (Timesheet.status == "Billed")
+						| (Timesheet.status == "Partially Billed")
+					)
 				)
 			).run(as_dict=1)
 
@@ -931,7 +936,7 @@ class SalarySlip(TransactionBase):
 		# get taxable_earnings for current period (all days)
 		self.current_taxable_earnings = self.get_taxable_earnings(self.tax_slab.allow_tax_exemption)
 		self.future_structured_taxable_earnings = self.current_taxable_earnings.taxable_earnings * (
-			ceil(self.remaining_sub_periods) - 1
+			round(self.remaining_sub_periods) - 1
 		)
 
 		current_taxable_earnings_before_exemption = (
@@ -939,7 +944,7 @@ class SalarySlip(TransactionBase):
 			+ self.current_taxable_earnings.amount_exempted_from_income_tax
 		)
 		self.future_structured_taxable_earnings_before_exemption = (
-			current_taxable_earnings_before_exemption * (ceil(self.remaining_sub_periods) - 1)
+			current_taxable_earnings_before_exemption * (round(self.remaining_sub_periods) - 1)
 		)
 
 		# get taxable_earnings, addition_earnings for current actual payment days
@@ -1540,6 +1545,11 @@ class SalarySlip(TransactionBase):
 
 		for additional_salary in additional_salaries:
 			component_data = get_salary_component_data(additional_salary.component)
+			remove_if_zero_valued = frappe.get_cached_value(
+				"Salary Component", additional_salary.component, "remove_if_zero_valued"
+			)
+			if flt(additional_salary.amount) == 0 and remove_if_zero_valued:
+				continue
 			self.update_component_row(
 				component_data,
 				additional_salary.amount,
@@ -1651,6 +1661,7 @@ class SalarySlip(TransactionBase):
 				sca.company,
 			)
 			.where(sc.variable_based_on_taxable_salary == 1)
+			.where(sc.disabled == 0)
 		).run(as_dict=True)
 
 		for component in components:
@@ -1817,10 +1828,12 @@ class SalarySlip(TransactionBase):
 
 		if has_additional_salary_tax_component:
 			self.current_structured_tax_amount = self.additional_salary_amount
-		else:
+		elif self.remaining_sub_periods > 0:
 			self.current_structured_tax_amount = (
 				self.total_structured_tax_amount - self.previous_total_paid_taxes
 			) / self.remaining_sub_periods
+		else:
+			self.current_structured_tax_amount = 0.0
 
 		# Total taxable earnings with additional earnings with full tax
 		self.full_tax_on_additional_earnings = 0.0
@@ -1963,9 +1976,9 @@ class SalarySlip(TransactionBase):
 				amount, additional_amount = self.get_amount_based_on_payment_days(earning)
 			else:
 				if earning.additional_amount:
-					amount, additional_amount = earning.amount, earning.additional_amount
+					amount, additional_amount = earning.amount or 0, earning.additional_amount or 0
 				else:
-					amount, additional_amount = earning.default_amount, earning.additional_amount
+					amount, additional_amount = earning.default_amount or 0, earning.additional_amount or 0
 
 			if earning.is_tax_applicable:
 				taxable_earnings += amount - additional_amount
@@ -2080,8 +2093,8 @@ class SalarySlip(TransactionBase):
 			and cint(row.depends_on_payment_days)
 		):
 			amount, additional_amount = 0, 0
-		elif not row.amount:
-			amount = flt(row.default_amount) + flt(row.additional_amount)
+		elif not row.amount and row.additional_amount:
+			amount = flt(row.additional_amount)
 
 		# apply rounding
 		if frappe.db.get_value(
@@ -2128,7 +2141,7 @@ class SalarySlip(TransactionBase):
 					"company": self.company,
 					"docstatus": 1,
 				},
-				fields="SUM(amount) as total_amount",
+				fields=[{"SUM": "amount", "as": "total_amount"}],
 			)[0].total_amount
 			or 0.0
 		)
@@ -2171,6 +2184,7 @@ class SalarySlip(TransactionBase):
 				).format(payroll_settings.password_policy)
 
 		if receiver:
+			posting_date = getdate(self.posting_date)
 			email_args = {
 				"sender": payroll_settings.sender_email,
 				"recipients": [receiver],
@@ -2181,6 +2195,7 @@ class SalarySlip(TransactionBase):
 				],
 				"reference_doctype": self.doctype,
 				"reference_name": self.name,
+				"send_after": posting_date if posting_date > getdate() else None,
 			}
 			if not frappe.flags.in_test:
 				enqueue(method=frappe.sendmail, queue="short", timeout=300, is_async=True, **email_args)
@@ -2222,12 +2237,12 @@ class SalarySlip(TransactionBase):
 			self.bank_account_no = account_details.bank_ac_no
 
 	@frappe.whitelist()
-	def process_salary_based_on_working_days(self):
+	def process_salary_based_on_working_days(self) -> None:
 		self.get_working_days_details(lwp=self.leave_without_pay)
 		self.calculate_net_pay()
 
 	@frappe.whitelist()
-	def set_totals(self):
+	def set_totals(self) -> None:
 		self.gross_pay = 0.0
 		if self.salary_slip_based_on_timesheet == 1:
 			self.calculate_total_for_salary_slip_based_on_timesheet()
@@ -2278,7 +2293,7 @@ class SalarySlip(TransactionBase):
 
 		salary_slip_sum = frappe.get_list(
 			"Salary Slip",
-			fields=["sum(net_pay) as net_sum", "sum(gross_pay) as gross_sum"],
+			fields=[{"SUM": "net_pay", "as": "net_sum"}, {"SUM": "gross_pay", "as": "gross_sum"}],
 			filters={
 				"employee": self.employee,
 				"start_date": [">=", period_start_date],
@@ -2301,7 +2316,7 @@ class SalarySlip(TransactionBase):
 		first_day_of_the_month = get_first_day(self.start_date)
 		salary_slip_sum = frappe.get_list(
 			"Salary Slip",
-			fields=["sum(net_pay) as sum"],
+			fields=[{"SUM": "net_pay", "as": "sum"}],
 			filters={
 				"employee": self.employee,
 				"start_date": [">=", first_day_of_the_month],
@@ -2377,6 +2392,9 @@ class SalarySlip(TransactionBase):
 					},
 				)
 
+	def on_discard(self):
+		self.db_set("status", "Cancelled")
+
 
 def get_benefits_details_parent(employee, payroll_period, salary_structure_assignment):
 	"""Returns the parent and doctype of benefit details based on the following logic:
@@ -2444,6 +2462,7 @@ def get_salary_component_data(component):
 			"is_flexible_benefit",
 			"variable_based_on_taxable_salary",
 			"accrual_component",
+			"exempted_from_income_tax",
 		),
 		as_dict=1,
 		cache=True,
@@ -2575,7 +2594,7 @@ def get_lwp_or_ppl_for_date_range(employee, start_date, end_date):
 
 
 @frappe.whitelist()
-def make_salary_slip_from_timesheet(source_name, target_doc=None):
+def make_salary_slip_from_timesheet(source_name: str, target_doc: str | Document | None = None) -> Document:
 	target = frappe.new_doc("Salary Slip")
 	set_missing_values(source_name, target)
 	target.run_method("get_emp_and_working_day_details")
@@ -2695,7 +2714,7 @@ def _check_attributes(code: str) -> None:
 
 
 @frappe.whitelist()
-def enqueue_email_salary_slips(names) -> None:
+def enqueue_email_salary_slips(names: list | str) -> None:
 	"""enqueue bulk emailing salary slips"""
 	import json
 

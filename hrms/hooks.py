@@ -7,14 +7,14 @@ app_license = "GNU General Public License (v3)"
 required_apps = ["frappe/erpnext"]
 source_link = "http://github.com/frappe/hrms"
 app_logo_url = "/assets/hrms/images/frappe-hr-logo.svg"
-app_home = "/app/overview"
+app_home = "/desk/people"
 
 add_to_apps_screen = [
 	{
 		"name": "hrms",
 		"logo": "/assets/hrms/images/frappe-hr-logo.svg",
 		"title": "Frappe HR",
-		"route": "/app/overview",
+		"route": "/desk/people",
 		"has_permission": "hrms.hr.utils.check_app_permission",
 	}
 ]
@@ -184,6 +184,9 @@ doc_events = {
 		"on_cancel": "hrms.hr.doctype.expense_claim.expense_claim.update_payment_for_expense_claim",
 		"on_update_after_submit": "hrms.hr.doctype.expense_claim.expense_claim.update_payment_for_expense_claim",
 	},
+	"Unreconcile Payment": {
+		"on_submit": "hrms.hr.doctype.expense_claim.expense_claim.update_payment_for_expense_claim",
+	},
 	"Journal Entry": {
 		"validate": "hrms.hr.doctype.expense_claim.expense_claim.validate_expense_claim_in_jv",
 		"on_submit": [
@@ -234,6 +237,7 @@ scheduler_events = {
 		"hrms.controllers.employee_reminders.send_work_anniversary_reminders",
 		"hrms.hr.doctype.daily_work_summary_group.daily_work_summary_group.send_summary",
 		"hrms.hr.doctype.interview.interview.send_daily_feedback_reminder",
+		"hrms.hr.doctype.shift_assignment.shift_assignment.mark_expired_shift_assignments_as_inactive",
 		"hrms.hr.doctype.job_opening.job_opening.close_expired_job_openings",
 	],
 	"daily_long": [
@@ -370,3 +374,7 @@ company_data_to_be_ignored = [
 
 # List of apps whose translatable strings should be excluded from this app's translations.
 ignore_translatable_strings_from = ["frappe", "erpnext"]
+employee_holiday_list = ["hrms.utils.holiday_list.get_holiday_list_for_employee"]
+export_python_type_annotations = True
+require_type_annotated_api_methods = True
+repost_allowed_doctypes = ["Expense Claim"]
