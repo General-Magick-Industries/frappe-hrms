@@ -53,6 +53,7 @@ def get_current_employee_info() -> dict:
 			"company",
 			"reports_to",
 			"user_id",
+			"custom_nickname", # TODO: added for custom nickname
 		],
 		as_dict=True,
 	)
@@ -73,6 +74,7 @@ def get_all_employees() -> list[dict]:
 			"user_id",
 			"image",
 			"status",
+			"custom_nickname", # TODO: added for custom nickname
 		],
 		limit=999999,
 	)
@@ -253,6 +255,11 @@ def get_filters(
 		filters.docstatus = 0
 		filters.employee = ("!=", employee)
 
+		# Filter by same company
+		employee_company = frappe.db.get_value("Employee", employee, "company")
+		if employee_company and doctype in ["Leave Application", "Expense Claim", "Shift Request"]:
+			filters.company = employee_company
+
 		if workflow := get_workflow(doctype):
 			allowed_states = get_allowed_states_for_workflow(workflow, approver_id)
 			filters[workflow.workflow_state_field] = ("in", allowed_states)
@@ -308,8 +315,19 @@ def get_shift_request_approvers(employee: str) -> str | list[str]:
 @frappe.whitelist()
 def get_shifts() -> list[dict[str, str]]:
 	employee = get_current_employee()
+	# Ambil company dari employee
+	employee_company = frappe.db.get_value("Employee", employee, "company")
+	
 	ShiftAssignment = frappe.qb.DocType("Shift Assignment")
 	ShiftType = frappe.qb.DocType("Shift Type")
+	
+	# Buat kondisi untuk company: sama dengan employee company ATAU kosong/null
+	company_condition = (
+		(ShiftType.custom_company == employee_company) 
+		| (ShiftType.custom_company.isnull()) 
+		| (ShiftType.custom_company == "")
+	)
+	
 	return (
 		frappe.qb.from_(ShiftAssignment)
 		.join(ShiftType)
@@ -321,11 +339,13 @@ def get_shifts() -> list[dict[str, str]]:
 			ShiftAssignment.end_date,
 			ShiftType.start_time,
 			ShiftType.end_time,
+			ShiftType.custom_company,  # Optional: jika ingin return company juga
 		)
 		.where(
 			(ShiftAssignment.employee == employee)
 			& (ShiftAssignment.status == "Active")
 			& (ShiftAssignment.docstatus == 1)
+			& company_condition
 		)
 		.orderby(ShiftAssignment.start_date, order=Order.asc)
 	).run(as_dict=True)

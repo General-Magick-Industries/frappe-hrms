@@ -1,6 +1,6 @@
 <template>
 	<div class="flex flex-col h-full w-full" v-if="isFormReady">
-		<div class="w-full h-full bg-white sm:w-96 flex flex-col">
+		<div class="w-full h-full bg-white sm:w-96 sm:mx-auto flex flex-col">
 			<header
 				class="flex flex-row bg-white shadow-sm py-4 px-3 items-center sticky top-0 z-[1000]"
 			>
@@ -127,6 +127,7 @@
 							<FileUploaderView
 								v-else-if="showAttachmentView && index === 0"
 								v-model="fileAttachments"
+								:required="attachmentRequired"
 								@handleFileSelect="handleFileSelect"
 								@handleFileDelete="handleFileDelete"
 							/>
@@ -166,6 +167,7 @@
 					<FileUploaderView
 						v-else-if="showAttachmentView"
 						v-model="fileAttachments"
+						:required="attachmentRequired"
 						@handleFileSelect="handleFileSelect"
 						@handleFileDelete="handleFileDelete"
 					/>
@@ -176,7 +178,7 @@
 			<!-- custom form button eg: Download button in salary slips -->
 			<div
 				v-if="!showFormButton"
-				class="px-4 pt-4 pb-4 standalone:pb-safe-bottom sm:w-96 bg-white sticky bottom-0 w-full drop-shadow-xl z-40 border-t rounded-t-lg"
+				class="px-4 pt-4 pb-4 standalone:pb-safe-bottom sm:w-96 sm:mx-auto bg-white sticky bottom-0 w-full drop-shadow-xl z-40 border-t rounded-t-lg"
 			>
 				<slot name="formButton"></slot>
 			</div>
@@ -192,7 +194,7 @@
 			<!-- save/submit/cancel -->
 			<div
 				v-else-if="isFormDirty || (!workflow?.hasWorkflow && formButton)"
-				class="px-4 pt-4 pb-4 standalone:pb-safe-bottom sm:w-96 bg-white sticky bottom-0 w-full drop-shadow-xl z-40 border-t rounded-t-lg"
+				class="px-4 pt-4 pb-4 standalone:pb-safe-bottom sm:w-96 sm:mx-auto bg-white sticky bottom-0 w-full drop-shadow-xl z-40 border-t rounded-t-lg"
 			>
 				<ErrorMessage
 					class="mb-2"
@@ -381,6 +383,11 @@ const props = defineProps({
 		default: true,
 	},
 	showDownloadPDFButton: {
+		type: Boolean,
+		required: false,
+		default: false,
+	},
+	attachmentRequired: {
 		type: Boolean,
 		required: false,
 		default: false,
@@ -655,6 +662,9 @@ function validateMandatoryFields() {
 		formErrorMessage.value = `${errorFields.join(", ")} ${
 			errorFields.length > 1 ? "fields are mandatory" : "field is mandatory"
 		}`
+		return false
+	} else if (props.attachmentRequired && !fileAttachments.value.length) {
+		formErrorMessage.value = __("Attachment is mandatory")
 		return false
 	} else {
 		formErrorMessage.value = ""

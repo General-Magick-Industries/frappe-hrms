@@ -1,7 +1,7 @@
 <template>
 	<ion-tab-bar
 		slot="bottom"
-		class="bg-white shadow-md sm:w-96 py-2 pb-2 standalone:pb-safe-bottom"
+		class="bg-white shadow-md sm:w-96 sm:mx-auto py-2 pb-2 standalone:pb-safe-bottom"
 	>
 		<ion-tab-button
 			v-for="item in tabItems"
@@ -53,15 +53,15 @@ const tabItems = [
 		title: __("Leaves"),
 		route: "/dashboard/leaves",
 	},
-	{
-		icon: ExpenseIcon,
-		title: __("Expenses"),
-		route: "/dashboard/expense-claims",
-	},
-	{
-		icon: SalaryIcon,
-		title: __("Salary"),
-		route: "/dashboard/salary-slips",
-	},
+	// {
+	// 	icon: ExpenseIcon,
+	// 	title: __("Expenses"),
+	// 	route: "/dashboard/expense-claims",
+	// },
+	// {
+	// 	icon: SalaryIcon,
+	// 	title: __("Salary"),
+	// 	route: "/dashboard/salary-slips",
+	// },
 ]
 </script>

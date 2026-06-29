@@ -2,7 +2,7 @@
 	<ion-page>
 		<ion-content class="ion-padding">
 			<div class="flex flex-col h-screen w-screen">
-				<div class="w-full sm:w-96">
+				<div class="w-full sm:w-96 sm:mx-auto">
 					<header
 						class="flex flex-row bg-white shadow-sm py-4 px-3 items-center justify-between border-b sticky top-0 z-10"
 					>
@@ -68,6 +68,13 @@
 							>
 								<EmployeeAvatar :userID="item.from_user" size="lg" />
 								<div class="flex flex-col gap-0.5 grow ml-3">
+									<!-- Tambahkan nickname di sini -->
+									<div 
+										class="text-xs font-medium text-blue-600" 
+										v-if="employeeNicknameMap[item.from_user]"
+									>
+										{{ employeeNicknameMap[item.from_user] }}
+									</div>
 									<div
 										class="text-sm leading-5 font-normal text-gray-800"
 										v-html="item.message"
@@ -109,6 +116,7 @@ import {
 	unreadNotificationsCount,
 	notifications,
 	arePushNotificationsEnabled,
+	employeesByUser,
 } from "@/data/notifications"
 
 const dayjs = inject("$dayjs")
@@ -116,6 +124,17 @@ const router = useRouter()
 const __ = inject("$translate")
 const currentStart = ref(0)
 const pageLength = 10
+
+// Tambahkan ini
+const employeeNicknameMap = computed(() => {
+	const map = {}
+	if (employeesByUser.data) {
+		employeesByUser.data.forEach(emp => {
+			map[emp.user_id] = emp.custom_nickname || emp.employee_name
+		})
+	}
+	return map
+})
 
 
 const allowPushNotifications = computed(

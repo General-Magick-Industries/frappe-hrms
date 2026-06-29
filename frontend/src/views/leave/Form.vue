@@ -9,6 +9,7 @@
 				:fields="formFields.data"
 				:id="props.id"
 				:showAttachmentView="true"
+				:attachmentRequired="isAttachmentRequired"
 				@validateForm="validateForm"
 			/>
 		</ion-content>
@@ -18,7 +19,7 @@
 <script setup>
 import { IonPage, IonContent } from "@ionic/vue"
 import { createResource } from "frappe-ui"
-import { ref, watch, inject, nextTick } from "vue"
+import { ref, watch, inject, computed, nextTick } from "vue"
 
 import FormView from "@/components/FormView.vue"
 
@@ -39,6 +40,10 @@ const currEmployee = ref(sessionEmployee.data.name)
 // reactive object to store form data
 const leaveApplication = ref({})
 
+const isAttachmentRequired = computed(() => {
+	const leaveType = leaveApplication.value.leave_type
+	return leaveType?.includes("Sick Leave") || leaveType?.includes("Visa Leave")
+})
 // For existing docs, watchers fire during initial data population from the DB.
 // This flag prevents setLeaveBalance() from overwriting the stored
 // "leave balance before application" value during that initial load.

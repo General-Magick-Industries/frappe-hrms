@@ -2,7 +2,7 @@
 	<ion-page>
 		<ion-content class="ion-padding">
 			<div class="flex flex-col h-screen w-screen">
-				<div class="w-full sm:w-96">
+				<div class="w-full sm:w-96 sm:mx-auto">
 					<header
 						class="flex flex-row bg-white shadow-sm py-4 px-3 items-center justify-between border-b sticky top-0 z-10"
 					>
@@ -36,6 +36,9 @@
 						<div class="flex flex-col gap-1.5 items-center mt-2 mb-5">
 							<span v-if="employee" class="text-lg font-bold text-gray-900">{{
 								employee?.data?.employee_name
+							}}</span>
+							<span v-if="employee" class="font-normal text-sm text-gray-500">{{
+								employee?.data?.custom_nickname
 							}}</span>
 							<span v-if="employee" class="font-normal text-sm text-gray-500">{{
 								employee?.data?.designation
@@ -166,6 +169,7 @@ const profileLinks = [
 		title: __("Employee Details"),
 		fields: [
 			"employee_name",
+			"custom_nickname",
 			"employee_number",
 			"gender",
 			"date_of_birth",
@@ -196,21 +200,31 @@ const profileLinks = [
 			"preferred_email",
 		],
 	},
+	// {
+	// 	icon: "dollar-sign",
+	// 	title: __("Salary Information"),
+	// 	fields: [
+	// 		"ctc",
+	// 		"payroll_cost_center",
+	// 		"pan_number",
+	// 		"provident_fund_account",
+	// 		"salary_mode",
+	// 		"bank_name",
+	// 		"bank_ac_no",
+	// 		"ifsc_code",
+	// 		"micr_code",
+	// 		"iban",
+	// 	],
+	// },
 	{
-		icon: "dollar-sign",
-		title: __("Salary Information"),
-		fields: [
-			"ctc",
-			"payroll_cost_center",
-			"pan_number",
-			"provident_fund_account",
-			"salary_mode",
-			"bank_name",
-			"bank_ac_no",
-			"ifsc_code",
-			"micr_code",
-			"iban",
-		],
+		icon: "user",
+		title: __("Update Profile"),
+		redirect: "/app/employee",
+	},
+	{
+		icon: "key",
+		title: __("Reset Password"),
+		redirect: "/update-password",
 	},
 ]
 
@@ -224,6 +238,17 @@ const allowPushNotifications = computed(
 )
 
 const openInfoModal = async (request) => {
+	if (request.redirect) {
+		let redirectUrl = request.redirect
+		
+		// Jika redirect ke update-employee-detail, tambahkan employee name
+		if (request.redirect.includes('/app/employee')) {
+			redirectUrl = `${request.redirect}/${employee.data?.name}`
+		}
+		
+		window.location.href = redirectUrl
+		return
+	}
 	selectedItem.value = request
 	isInfoModalOpen.value = true
 }
